@@ -27,112 +27,156 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentGroupForNewLink = null;
 
     // Initialize
-    loadLinks();
-    searchETA();
-    updateHeaderColor(currentWarehouse);
+    initApp();
 
-    // Warehouse Selection
-    warehouseRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            currentWarehouse = this.value;
-            updateHeaderColor(currentWarehouse);
-            searchETA();
-        });
-    });
-
-    function updateHeaderColor(warehouse) {
-        header.classList.remove('texas-header', 'detroit-header');
-        header.classList.add(`${warehouse}-header`);
+    function initApp() {
+        loadLinks();
+        searchETA();
+        updateHeaderColor(currentWarehouse);
+        setupEventListeners();
     }
 
-    // Link Tree Management
+    function setupEventListeners() {
+        // Warehouse Selection
+        warehouseRadios.forEach(radio => {
+            radio.addEventListener('change', handleWarehouseChange);
+        });
+
+        // Edit Mode Toggle
+        toggleEditBtn.addEventListener('click', toggleEditMode);
+
+        // Group Management
+        addGroupBtn.addEventListener('click', showGroupEditor);
+        saveGroupBtn.addEventListener('click', saveGroup);
+        cancelGroupBtn.addEventListener('click', hideGroupEditor);
+
+        // Link Management
+        saveLinkBtn.addEventListener('click', saveLink);
+        cancelEditBtn.addEventListener('click', hideLinkEditor);
+
+        // Bulk Actions
+        deleteSelectedBtn.addEventListener('click', deleteSelectedLinks);
+        groupSelector.addEventListener('change', moveSelectedLinks);
+
+        // Search
+        stateSearch.addEventListener('input', searchETA);
+    }
+
+    function handleWarehouseChange(e) {
+        currentWarehouse = e.target.value;
+        updateHeaderColor(currentWarehouse);
+        searchETA();
+    }
+
+    function updateHeaderColor(warehouse) {
+        header.className = `${warehouse}-header`;
+    }
+
+    // LINK TREE FUNCTIONS
     function loadLinks() {
         const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || { groups: [] };
         linkTree.innerHTML = '';
         groupSelector.innerHTML = '<option value="">Move to...</option>';
         
         if (savedLinks.groups.length === 0) {
-            savedLinks.groups.push({
-                name: 'Main Links',
-                expanded: true,
-                links: []
-            });
+            savedLinks.groups.push(createNewGroup('Main Links'));
         }
 
         savedLinks.groups.forEach((group, groupIndex) => {
-            // Add to group selector
-            const option = document.createElement('option');
-            option.value = groupIndex;
-            option.textContent = group.name;
-            groupSelector.appendChild(option);
-
-            // Create group element
-            const groupElement = document.createElement('div');
-            groupElement.className = `link-group ${group.expanded ? 'expanded' : ''}`;
-            groupElement.innerHTML = `
-                <div class="link-group-header">
-                    <h3>${group.name}</h3>
-                    <div class="group-actions" style="display: none">
-                        <button class="icon-btn add-link-to-group" data-group="${groupIndex}">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="icon-btn edit-group-btn" data-group="${groupIndex}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="link-group-content"></div>
-            `;
-
-            const contentElement = groupElement.querySelector('.link-group-content');
-            group.links.forEach((link, linkIndex) => {
-                const linkItem = document.createElement('div');
-                linkItem.className = 'link-item';
-                linkItem.innerHTML = `
-                    <a href="${link.url}" target="_blank">${link.name}</a>
-                    <input type="checkbox" class="link-checkbox" data-group="${groupIndex}" data-link="${linkIndex}">
-                `;
-                contentElement.appendChild(linkItem);
-            });
-
-            linkTree.appendChild(groupElement);
-
-            // Toggle group expansion
-            groupElement.querySelector('.link-group-header').addEventListener('click', function(e) {
-                if (!e.target.closest('button')) {
-                    groupElement.classList.toggle('expanded');
-                    savedLinks.groups[groupIndex].expanded = groupElement.classList.contains('expanded');
-                    saveLinksToStorage(savedLinks);
-                }
-            });
-
-            // Add link to group button
-            groupElement.querySelector('.add-link-to-group').addEventListener('click', function() {
-                currentGroupForNewLink = groupIndex;
-                linkNameInput.value = '';
-                linkUrlInput.value = '';
-                linkEditor.style.display = 'block';
-                groupEditor.style.display = 'none';
-                linkNameInput.focus();
-            });
-
-            // Edit group button
-            groupElement.querySelector('.edit-group-btn').addEventListener('click', function() {
-                editingGroup = groupIndex;
-                groupNameInput.value = group.name;
-                groupEditor.style.display = 'block';
-                linkEditor.style.display = 'none';
-                groupNameInput.focus();
-            });
+            createGroupElement(group, groupIndex, savedLinks);
         });
+
+        if (bulkEditControls.classList.contains('active')) {
+            toggleEditMode();
+        }
+    }
+
+    function createGroupElement(group, groupIndex, savedLinks) {
+        const groupElement = document.createElement('div');
+        groupElement.className = `link-group ${group.expanded ? 'expanded' : ''}`;
+        
+        groupElement.innerHTML = `
+            <div class="link-group-header">
+                <h3>${group.name}</h3>
+                <div class="group-actions" style="display: none">
+                    <button class="icon-btn add-link-to-group" data-group="${groupIndex}">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="icon-btn edit-group-btn" data-group="${groupIndex}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="link-group-content"></div>
+        `;
+
+        const contentElement = groupElement.querySelector('.link-group-content');
+        group.links.forEach((link, linkIndex) => {
+            contentElement.appendChild(createLinkElement(link, groupIndex, linkIndex));
+        });
+
+        linkTree.appendChild(groupElement);
+        groupSelector.appendChild(createGroupOption(group, groupIndex));
+
+        setupGroupEventListeners(groupElement, groupIndex, savedLinks);
+    }
+
+    function createLinkElement(link, groupIndex, linkIndex) {
+        const linkItem = document.createElement('div');
+        linkItem.className = 'link-item';
+        linkItem.innerHTML = `
+            <a href="${link.url}" target="_blank">${link.name}</a>
+            <input type="checkbox" class="link-checkbox" data-group="${groupIndex}" data-link="${linkIndex}">
+        `;
+        return linkItem;
+    }
+
+    function createGroupOption(group, index) {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = group.name;
+        return option;
+    }
+
+    function setupGroupEventListeners(groupElement, groupIndex, savedLinks) {
+        // Group header click
+        groupElement.querySelector('.link-group-header').addEventListener('click', function(e) {
+            if (!e.target.closest('button')) {
+                toggleGroupExpansion(groupElement, groupIndex, savedLinks);
+            }
+        });
+
+        // Add link button
+        groupElement.querySelector('.add-link-to-group').addEventListener('click', () => {
+            showLinkEditor(groupIndex);
+        });
+
+        // Edit group button
+        groupElement.querySelector('.edit-group-btn').addEventListener('click', () => {
+            showGroupEditor(groupIndex);
+        });
+    }
+
+    function toggleGroupExpansion(groupElement, groupIndex, savedLinks) {
+        groupElement.classList.toggle('expanded');
+        savedLinks.groups[groupIndex].expanded = groupElement.classList.contains('expanded');
+        saveLinksToStorage(savedLinks);
+    }
+
+    function createNewGroup(name) {
+        return {
+            name: name,
+            expanded: true,
+            links: []
+        };
     }
 
     function saveLinksToStorage(data) {
         localStorage.setItem('linkTree', JSON.stringify(data));
     }
 
-    // Toggle edit mode
-    toggleEditBtn.addEventListener('click', function() {
+    // EDIT MODE FUNCTIONS
+    function toggleEditMode() {
         bulkEditControls.classList.toggle('active');
         document.querySelectorAll('.link-checkbox').forEach(checkbox => {
             checkbox.style.display = checkbox.style.display === 'inline-block' ? 'none' : 'inline-block';
@@ -140,48 +184,54 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.group-actions').forEach(actions => {
             actions.style.display = actions.style.display === 'flex' ? 'none' : 'flex';
         });
-    });
+    }
 
-    // Add new group
-    addGroupBtn.addEventListener('click', function() {
-        editingGroup = null;
-        groupNameInput.value = '';
+    // GROUP EDITOR FUNCTIONS
+    function showGroupEditor(groupIndex = null) {
+        editingGroup = groupIndex;
+        groupNameInput.value = groupIndex !== null ? getSavedLinks().groups[groupIndex].name : '';
+        hideLinkEditor();
         groupEditor.style.display = 'block';
-        linkEditor.style.display = 'none';
         groupNameInput.focus();
-    });
+    }
 
-    // Save group
-    saveGroupBtn.addEventListener('click', function() {
+    function hideGroupEditor() {
+        groupEditor.style.display = 'none';
+    }
+
+    function saveGroup() {
         const name = groupNameInput.value.trim();
         if (!name) return;
 
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || { groups: [] };
+        const savedLinks = getSavedLinks();
 
         if (editingGroup !== null) {
-            // Update existing group
             savedLinks.groups[editingGroup].name = name;
         } else {
-            // Add new group
-            savedLinks.groups.push({
-                name: name,
-                expanded: true,
-                links: []
-            });
+            savedLinks.groups.push(createNewGroup(name));
         }
 
         saveLinksToStorage(savedLinks);
-        groupEditor.style.display = 'none';
+        hideGroupEditor();
         loadLinks();
-    });
+    }
 
-    // Cancel group edit
-    cancelGroupBtn.addEventListener('click', function() {
-        groupEditor.style.display = 'none';
-    });
+    // LINK EDITOR FUNCTIONS
+    function showLinkEditor(groupIndex) {
+        currentGroupForNewLink = groupIndex;
+        editingLink = null;
+        linkNameInput.value = '';
+        linkUrlInput.value = '';
+        hideGroupEditor();
+        linkEditor.style.display = 'block';
+        linkNameInput.focus();
+    }
 
-    // Save link
-    saveLinkBtn.addEventListener('click', function() {
+    function hideLinkEditor() {
+        linkEditor.style.display = 'none';
+    }
+
+    function saveLink() {
         const name = linkNameInput.value.trim();
         let url = linkUrlInput.value.trim();
         
@@ -191,36 +241,28 @@ document.addEventListener('DOMContentLoaded', function() {
             url = 'https://' + url;
         }
         
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || { groups: [] };
+        const savedLinks = getSavedLinks();
         const groupIndex = currentGroupForNewLink !== null ? currentGroupForNewLink : 0;
         
         if (editingLink !== null) {
-            // Update existing link
             const [groupIdx, linkIdx] = editingLink;
             savedLinks.groups[groupIdx].links[linkIdx] = { name, url };
         } else {
-            // Add new link
             savedLinks.groups[groupIndex].links.push({ name, url });
         }
         
         saveLinksToStorage(savedLinks);
-        linkEditor.style.display = 'none';
+        hideLinkEditor();
         loadLinks();
-    });
+    }
 
-    // Cancel link edit
-    cancelEditBtn.addEventListener('click', function() {
-        linkEditor.style.display = 'none';
-    });
-
-    // Delete selected links
-    deleteSelectedBtn.addEventListener('click', function() {
+    // BULK ACTIONS
+    function deleteSelectedLinks() {
         const checkboxes = document.querySelectorAll('.link-checkbox:checked');
         if (checkboxes.length === 0) return;
 
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || { groups: [] };
+        const savedLinks = getSavedLinks();
         
-        // We need to delete from highest index to lowest to avoid shifting issues
         const toDelete = Array.from(checkboxes)
             .map(checkbox => ({
                 group: parseInt(checkbox.dataset.group),
@@ -235,19 +277,17 @@ document.addEventListener('DOMContentLoaded', function() {
         saveLinksToStorage(savedLinks);
         loadLinks();
         bulkEditControls.classList.remove('active');
-    });
+    }
 
-    // Move selected links
-    groupSelector.addEventListener('change', function() {
+    function moveSelectedLinks() {
         const targetGroup = parseInt(this.value);
         if (isNaN(targetGroup)) return;
 
         const checkboxes = document.querySelectorAll('.link-checkbox:checked');
         if (checkboxes.length === 0) return;
 
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || { groups: [] };
+        const savedLinks = getSavedLinks();
         
-        // We need to process from highest index to lowest to avoid shifting issues
         const toMove = Array.from(checkboxes)
             .map(checkbox => ({
                 group: parseInt(checkbox.dataset.group),
@@ -265,11 +305,9 @@ document.addEventListener('DOMContentLoaded', function() {
         loadLinks();
         this.value = '';
         bulkEditControls.classList.remove('active');
-    });
+    }
 
-    // ETA Search Functionality
-    stateSearch.addEventListener('input', searchETA);
-
+    // ETA SEARCH FUNCTIONS
     function searchETA() {
         const searchTerm = stateSearch.value.trim().toUpperCase();
         const warehouseData = etaData[currentWarehouse];
@@ -293,12 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     addRowToTable(stateAbbr, warehouseData[stateAbbr]);
                 });
             } else {
-                // Show message if no match found
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="5">No ETA data found for "${searchTerm}"</td>
-                `;
-                etaTable.appendChild(row);
+                showNoResultsMessage(searchTerm);
             }
         }
     }
@@ -326,19 +359,35 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         etaTable.appendChild(row);
         
-        // Highlight search matches
-        if (stateSearch.value.trim() !== '') {
-            const searchTerm = stateSearch.value.trim().toUpperCase();
-            const regex = new RegExp(searchTerm, 'gi');
-            
-            ['state-name', 'state-zip', 'state-time'].forEach(className => {
-                const element = row.querySelector(`.${className}`);
-                if (element) {
-                    element.innerHTML = element.textContent.replace(regex, 
-                        match => `<span class="highlight">${match}</span>`
-                    );
-                }
-            });
-        }
+        highlightSearchMatches(row);
+    }
+
+    function highlightSearchMatches(row) {
+        const searchTerm = stateSearch.value.trim();
+        if (!searchTerm) return;
+
+        const regex = new RegExp(searchTerm, 'gi');
+        
+        ['state-name', 'state-zip', 'state-time'].forEach(className => {
+            const element = row.querySelector(`.${className}`);
+            if (element) {
+                element.innerHTML = element.textContent.replace(regex, 
+                    match => `<span class="highlight">${match}</span>`
+                );
+            }
+        });
+    }
+
+    function showNoResultsMessage(searchTerm) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="5">No ETA data found for "${searchTerm}"</td>
+        `;
+        etaTable.appendChild(row);
+    }
+
+    // HELPER FUNCTIONS
+    function getSavedLinks() {
+        return JSON.parse(localStorage.getItem('linkTree')) || { groups: [] };
     }
 });
