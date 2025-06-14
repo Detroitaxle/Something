@@ -5,8 +5,8 @@ class ETACalculator {
     }
     
     init() {
-        this.renderStateList();
         this.setupEventListeners();
+        this.renderStateList();
     }
     
     renderStateList(filter = '') {
@@ -18,10 +18,19 @@ class ETACalculator {
             state.name.toLowerCase().includes(filter.toLowerCase())
         );
         
+        if (filteredStates.length === 0) {
+            resultsContainer.innerHTML = '<p>No states found matching your search</p>';
+            return;
+        }
+        
         filteredStates.forEach(state => {
             const eta = this.getETA(state.abbreviation);
-            const timezone = this.getTimezone(state.abbreviation);
-            const localTime = this.getLocalTime(timezone);
+            const timezone = state.timezone;
+            const localTime = new Date().toLocaleTimeString('en-US', {
+                timeZone: timezone,
+                hour: '2-digit',
+                minute: '2-digit'
+            });
             
             const stateElement = document.createElement('div');
             stateElement.className = 'state-card';
@@ -39,25 +48,22 @@ class ETACalculator {
         return etaData[this.currentWarehouse][stateAbbr] || 'N/A';
     }
     
-    getTimezone(stateAbbr) {
-        return statesData.find(s => s.abbreviation === stateAbbr)?.timezone || 'UTC';
-    }
-    
-    getLocalTime(timezone) {
-        // Return formatted local time for the timezone
-    }
-    
     setupEventListeners() {
+        // Search input
         document.getElementById('state-search').addEventListener('input', (e) => {
             this.renderStateList(e.target.value);
         });
         
+        // Warehouse tabs
         document.querySelectorAll('.warehouse-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 this.currentWarehouse = tab.dataset.warehouse;
                 document.querySelectorAll('.warehouse-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                document.body.style.setProperty('--warehouse-color', this.currentWarehouse === 'texas' ? '#e67e22' : '#f39c12');
+                document.documentElement.style.setProperty(
+                    '--warehouse-color', 
+                    this.currentWarehouse === 'texas' ? '#e67e22' : '#f39c12'
+                );
                 this.renderStateList(document.getElementById('state-search').value);
             });
         });
