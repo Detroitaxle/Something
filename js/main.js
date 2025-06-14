@@ -1,181 +1,140 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Link Tree Management
-    const linkTree = document.getElementById('link-tree');
-    const addLinkBtn = document.getElementById('add-link-btn');
-    const linkEditor = document.querySelector('.link-editor');
-    const linkNameInput = document.getElementById('link-name');
-    const linkUrlInput = document.getElementById('link-url');
-    const saveLinkBtn = document.getElementById('save-link-btn');
-    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+// Add these updates to your main.js
+
+// Warehouse-specific header colors
+function updateHeaderColor(warehouse) {
+    const header = document.querySelector('header');
+    header.classList.remove('texas-header', 'detroit-header');
+    header.classList.add(`${warehouse}-header`);
+}
+
+// Instant search functionality
+stateSearch.addEventListener('input', searchETA);
+
+// Enhanced ETA results with state info
+function addRowToTable(stateAbbr, eta) {
+    const stateInfo = statesData[stateAbbr];
+    if (!stateInfo) return;
     
-    let editingLinkId = null;
+    const now = new Date();
+    const options = { timeZone: stateInfo.timezone, hour: '2-digit', minute: '2-digit' };
+    const localTime = now.toLocaleTimeString('en-US', options);
     
-    // Load saved links from localStorage
-    function loadLinks() {
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || [];
-        linkTree.innerHTML = '';
-        
-        savedLinks.forEach((link, index) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <a href="${link.url}" target="_blank">${link.name}</a>
-                <div class="link-actions">
-                    <button class="icon-btn edit-link" data-id="${index}">
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>
+            <div class="state-info">
+                <div>
+                    <span class="state-name">${stateInfo.name}</span>
+                    <div class="state-zip">ZIP starts with: ${stateInfo.zipPrefix}</div>
+                </div>
+                <div class="state-time">${localTime}</div>
+            </div>
+        </td>
+        <td>${stateAbbr}</td>
+        <td>${eta} business days</td>
+    `;
+    etaTable.appendChild(row);
+}
+
+// Group management for links
+function loadLinks() {
+    const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || { groups: [] };
+    linkTree.innerHTML = '';
+    
+    savedLinks.groups.forEach((group, groupIndex) => {
+        const groupElement = document.createElement('div');
+        groupElement.className = `link-group ${group.expanded ? 'expanded' : ''}`;
+        groupElement.innerHTML = `
+            <div class="link-group-header">
+                <h3>${group.name || 'Unnamed Group'}</h3>
+                <div>
+                    <button class="icon-btn edit-group" data-group="${groupIndex}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="icon-btn delete-link" data-id="${index}">
+                    <button class="icon-btn delete-group" data-group="${groupIndex}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-            `;
-            linkTree.appendChild(li);
-        });
-        
-        // Add event listeners to edit/delete buttons
-        document.querySelectorAll('.edit-link').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = parseInt(this.getAttribute('data-id'));
-                editLink(id);
-            });
-        });
-        
-        document.querySelectorAll('.delete-link').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = parseInt(this.getAttribute('data-id'));
-                deleteLink(id);
-            });
-        });
-    }
-    
-    // Add new link
-    function addLink() {
-        linkNameInput.value = '';
-        linkUrlInput.value = '';
-        editingLinkId = null;
-        linkEditor.style.display = 'block';
-        linkNameInput.focus();
-    }
-    
-    // Edit existing link
-    function editLink(id) {
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || [];
-        const link = savedLinks[id];
-        
-        linkNameInput.value = link.name;
-        linkUrlInput.value = link.url;
-        editingLinkId = id;
-        linkEditor.style.display = 'block';
-        linkNameInput.focus();
-    }
-    
-    // Delete link
-    function deleteLink(id) {
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || [];
-        savedLinks.splice(id, 1);
-        localStorage.setItem('linkTree', JSON.stringify(savedLinks));
-        loadLinks();
-    }
-    
-    // Save link
-    function saveLink() {
-        const name = linkNameInput.value.trim();
-        let url = linkUrlInput.value.trim();
-        
-        if (!name || !url) {
-            alert('Please fill in both fields');
-            return;
-        }
-        
-        // Add https:// if not present
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = 'https://' + url;
-        }
-        
-        const savedLinks = JSON.parse(localStorage.getItem('linkTree')) || [];
-        
-        if (editingLinkId !== null) {
-            // Update existing link
-            savedLinks[editingLinkId] = { name, url };
-        } else {
-            // Add new link
-            savedLinks.push({ name, url });
-        }
-        
-        localStorage.setItem('linkTree', JSON.stringify(savedLinks));
-        linkEditor.style.display = 'none';
-        loadLinks();
-    }
-    
-    // Event listeners for link management
-    addLinkBtn.addEventListener('click', addLink);
-    saveLinkBtn.addEventListener('click', saveLink);
-    cancelEditBtn.addEventListener('click', () => {
-        linkEditor.style.display = 'none';
-    });
-    
-    // Load initial links
-    loadLinks();
-    
-    // Warehouse ETA Search Functionality
-    const stateSearch = document.getElementById('state-search');
-    const searchBtn = document.getElementById('search-btn');
-    const etaTable = document.querySelector('#eta-table tbody');
-    const warehouseRadios = document.querySelectorAll('input[name="warehouse"]');
-    
-    let currentWarehouse = 'texas';
-    
-    // Update warehouse selection
-    warehouseRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            currentWarehouse = this.value;
-            searchETA();
-        });
-    });
-    
-    // Search ETA
-    function searchETA() {
-        const searchTerm = stateSearch.value.trim().toUpperCase();
-        const warehouseData = etaData[currentWarehouse];
-        etaTable.innerHTML = '';
-        
-        if (searchTerm === '') {
-            // Show all states if search is empty
-            for (const [state, eta] of Object.entries(warehouseData)) {
-                addRowToTable(state, eta);
-            }
-        } else {
-            // Filter by search term
-            if (warehouseData.hasOwnProperty(searchTerm)) {
-                addRowToTable(searchTerm, warehouseData[searchTerm]);
-            } else {
-                // Show message if no match found
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="2">No ETA data found for ${searchTerm}</td>
-                `;
-                etaTable.appendChild(row);
-            }
-        }
-    }
-    
-    // Add row to ETA table
-    function addRowToTable(state, eta) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${state}</td>
-            <td>${eta} business days</td>
+            </div>
+            <div class="link-group-content"></div>
         `;
-        etaTable.appendChild(row);
-    }
-    
-    // Event listeners for ETA search
-    searchBtn.addEventListener('click', searchETA);
-    stateSearch.addEventListener('keyup', function(e) {
-        if (e.key === 'Enter') {
-            searchETA();
-        }
+        
+        const contentElement = groupElement.querySelector('.link-group-content');
+        group.links.forEach((link, linkIndex) => {
+            const li = document.createElement('div');
+            li.className = 'link-item';
+            li.innerHTML = `
+                <a href="${link.url}" target="_blank">${link.name}</a>
+                <input type="checkbox" class="link-checkbox" data-group="${groupIndex}" data-link="${linkIndex}">
+            `;
+            contentElement.appendChild(li);
+        });
+        
+        linkTree.appendChild(groupElement);
+        
+        // Toggle group expansion
+        groupElement.querySelector('.link-group-header').addEventListener('click', function(e) {
+            if (!e.target.closest('button')) {
+                groupElement.classList.toggle('expanded');
+                savedLinks.groups[groupIndex].expanded = groupElement.classList.contains('expanded');
+                localStorage.setItem('linkTree', JSON.stringify(savedLinks));
+            }
+        });
     });
     
-    // Load all ETAs on initial page load
-    searchETA();
+    // Add bulk edit controls
+    const bulkEditDiv = document.createElement('div');
+    bulkEditDiv.className = 'bulk-edit-controls';
+    bulkEditDiv.innerHTML = `
+        <button id="delete-selected-links">Delete Selected</button>
+        <button id="move-selected-links">Move to Group</button>
+        <select id="group-selector"></select>
+    `;
+    linkTree.appendChild(bulkEditDiv);
+    
+    // Populate group selector
+    savedLinks.groups.forEach((group, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = group.name || `Group ${index + 1}`;
+        bulkEditDiv.querySelector('#group-selector').appendChild(option);
+    });
+}
+
+// Toggle bulk edit mode
+function toggleBulkEdit() {
+    document.querySelector('.bulk-edit-controls').classList.toggle('active');
+    document.querySelectorAll('.link-checkbox').forEach(checkbox => {
+        checkbox.style.display = checkbox.style.display === 'inline-block' ? 'none' : 'inline-block';
+    });
+}
+
+// Highlight search matches
+function searchETA() {
+    const searchTerm = stateSearch.value.trim().toUpperCase();
+    const warehouseData = etaData[currentWarehouse];
+    etaTable.innerHTML = '';
+    
+    // Highlight matching text in the search box
+    if (searchTerm) {
+        const regex = new RegExp(searchTerm, 'gi');
+        document.querySelectorAll('.state-name, .state-zip, td').forEach(element => {
+            const text = element.textContent;
+            element.innerHTML = text.replace(regex, match => 
+                `<span class="highlight">${match}</span>`
+            );
+        });
+    }
+    
+    // Rest of your search logic...
+}
+
+// Initialize with Texas as default
+updateHeaderColor('texas');
+warehouseRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+        currentWarehouse = this.value;
+        updateHeaderColor(currentWarehouse);
+        searchETA();
+    });
 });
