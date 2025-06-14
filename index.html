@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Link Tree & ETA Tracker</title>
+    <title>Link Tree & ETA Tracker</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="assets/favicon.ico">
 </head>
@@ -16,16 +16,14 @@
                 <button id="edit-mode-toggle">Edit Mode</button>
             </div>
             <div id="link-tree-container">
-                <!-- Link groups will be dynamically inserted here -->
+                <!-- Links will appear here -->
             </div>
             <div class="link-controls">
                 <button id="add-group-btn">Add Group</button>
                 <button id="add-link-btn">Add Link</button>
                 <div id="bulk-edit-controls" class="hidden">
                     <button id="bulk-delete-btn">Delete Selected</button>
-                    <select id="group-selector">
-                        <!-- Groups will be populated here -->
-                    </select>
+                    <select id="group-selector"></select>
                     <button id="bulk-move-btn">Move to Group</button>
                 </div>
             </div>
@@ -46,11 +44,12 @@
             </div>
             
             <div id="eta-results">
-                <!-- ETA results will be displayed here -->
+                <!-- ETA results will appear here -->
             </div>
         </main>
     </div>
 
+    <!-- JavaScript Files -->
     <script src="js/states-data.js"></script>
     <script src="js/eta-data.js"></script>
     <script src="js/link-manager.js"></script>
