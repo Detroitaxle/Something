@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse ETA Tracker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar - Link Tree -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Quick Links</h2>
+                <button id="add-link-btn" class="icon-btn">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <ul id="link-tree" class="link-tree"></ul>
+            
+            <div class="link-editor">
+                <input type="text" id="link-name" placeholder="Link name">
+                <input type="text" id="link-url" placeholder="URL (https://)">
+                <div class="editor-buttons">
+                    <button id="save-link-btn">Save</button>
+                    <button id="cancel-edit-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Warehouse ETA Tracker</h1>
+            </header>
+            
+            <div class="warehouse-selector">
+                <h2>Select Warehouse</h2>
+                <div class="warehouse-options">
+                    <label>
+                        <input type="radio" name="warehouse" value="texas" checked>
+                        <span>Texas</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="warehouse" value="detroit">
+                        <span>Detroit</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="eta-search">
+                <div class="search-box">
+                    <input type="text" id="state-search" placeholder="Search by state abbreviation (e.g., CA)">
+                    <button id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <div class="eta-results">
+                    <table id="eta-table">
+                        <thead>
+                            <tr>
+                                <th>State</th>
+                                <th>ETA (Days)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/eta-data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
