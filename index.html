@@ -3,98 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse ETA Tracker</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>My Link Tree & ETA Tracker</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="assets/favicon.ico">
 </head>
 <body>
-    <div class="app-container">
+    <div class="container">
         <!-- Left Sidebar - Link Tree -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h2>Quick Links</h2>
-                <div>
-                    <button id="toggle-edit-btn" class="icon-btn">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button id="add-group-btn" class="icon-btn">
-                        <i class="fas fa-folder-plus"></i>
-                    </button>
+        <aside class="sidebar">
+            <div class="link-tree-header">
+                <h2>My Links</h2>
+                <button id="edit-mode-toggle">Edit Mode</button>
+            </div>
+            <div id="link-tree-container">
+                <!-- Link groups will be dynamically inserted here -->
+            </div>
+            <div class="link-controls">
+                <button id="add-group-btn">Add Group</button>
+                <button id="add-link-btn">Add Link</button>
+                <div id="bulk-edit-controls" class="hidden">
+                    <button id="bulk-delete-btn">Delete Selected</button>
+                    <select id="group-selector">
+                        <!-- Groups will be populated here -->
+                    </select>
+                    <button id="bulk-move-btn">Move to Group</button>
                 </div>
             </div>
-            
-            <div id="link-tree" class="link-tree"></div>
-            
-            <div class="bulk-edit-controls">
-                <button id="delete-selected-links">Delete Selected</button>
-                <select id="group-selector">
-                    <option value="">Move to...</option>
-                </select>
-            </div>
-            
-            <div class="link-editor">
-                <input type="text" id="link-name" placeholder="Link name">
-                <input type="text" id="link-url" placeholder="URL (https://)">
-                <div class="editor-buttons">
-                    <button id="save-link-btn">Save</button>
-                    <button id="cancel-edit-btn">Cancel</button>
-                </div>
-            </div>
-            
-            <div class="group-editor">
-                <input type="text" id="group-name" placeholder="Group name">
-                <div class="editor-buttons">
-                    <button id="save-group-btn">Save</button>
-                    <button id="cancel-group-btn">Cancel</button>
-                </div>
-            </div>
-        </div>
+        </aside>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <header class="texas-header">
-                <h1>Warehouse ETA Tracker</h1>
-            </header>
-            
+        <!-- Main Content - ETA Tracker -->
+        <main class="content">
             <div class="warehouse-selector">
-                <h2>Select Warehouse</h2>
-                <div class="warehouse-options">
-                    <label>
-                        <input type="radio" name="warehouse" value="texas" checked>
-                        <span>Texas</span>
-                    </label>
-                    <label>
-                        <input type="radio" name="warehouse" value="detroit">
-                        <span>Detroit</span>
-                    </label>
+                <h1>Warehouse ETA Tracker</h1>
+                <div class="warehouse-tabs">
+                    <button class="warehouse-tab active" data-warehouse="texas">Texas</button>
+                    <button class="warehouse-tab" data-warehouse="detroit">Detroit</button>
                 </div>
             </div>
             
-            <div class="eta-search">
-                <div class="search-box">
-                    <input type="text" id="state-search" placeholder="Search by state abbreviation (e.g., CA)">
-                </div>
-                
-                <div class="eta-results">
-                    <table id="eta-table">
-                        <thead>
-                            <tr>
-                                <th>State Name</th>
-                                <th>Abbr</th>
-                                <th>ZIP Prefix</th>
-                                <th>Local Time</th>
-                                <th>ETA (Days)</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <div class="search-container">
+                <input type="text" id="state-search" placeholder="Search by state abbreviation...">
             </div>
-        </div>
+            
+            <div id="eta-results">
+                <!-- ETA results will be displayed here -->
+            </div>
+        </main>
     </div>
 
     <script src="js/states-data.js"></script>
     <script src="js/eta-data.js"></script>
+    <script src="js/link-manager.js"></script>
+    <script src="js/eta-calculator.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
