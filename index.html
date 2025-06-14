@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Link Tree & ETA Tracker</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="assets/favicon.ico">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="icon" href="./assets/favicon.ico">
 </head>
 <body>
     <div class="container">
@@ -16,7 +17,8 @@
                 <button id="edit-mode-toggle">Edit Mode</button>
             </div>
             <div id="link-tree-container">
-                <!-- Links will appear here -->
+                <!-- Content will be loaded by JavaScript -->
+                <div class="loading-message">Loading links...</div>
             </div>
             <div class="link-controls">
                 <button id="add-group-btn">Add Group</button>
@@ -40,20 +42,51 @@
             </div>
             
             <div class="search-container">
-                <input type="text" id="state-search" placeholder="Search by state abbreviation...">
+                <input type="text" id="state-search" placeholder="Search by state abbreviation..." autocomplete="off">
             </div>
             
             <div id="eta-results">
-                <!-- ETA results will appear here -->
+                <!-- Content will be loaded by JavaScript -->
+                <div class="loading-message">Loading ETA data...</div>
             </div>
         </main>
     </div>
 
-    <!-- JavaScript Files -->
-    <script src="js/states-data.js"></script>
-    <script src="js/eta-data.js"></script>
-    <script src="js/link-manager.js"></script>
-    <script src="js/eta-calculator.js"></script>
-    <script src="js/main.js"></script>
+    <!-- JavaScript Files with error handling -->
+    <script>
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = () => reject(new Error(`Failed to load ${src}`));
+                document.body.appendChild(script);
+            });
+        }
+
+        async function initializeApp() {
+            try {
+                await loadScript('./js/states-data.js');
+                await loadScript('./js/eta-data.js');
+                await loadScript('./js/link-manager.js');
+                await loadScript('./js/eta-calculator.js');
+                await loadScript('./js/main.js');
+                
+                // Hide loading messages
+                document.querySelectorAll('.loading-message').forEach(el => el.remove());
+                
+                console.log('All scripts loaded successfully');
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+                document.querySelectorAll('.loading-message').forEach(el => {
+                    el.textContent = 'Error loading application. Please check console.';
+                    el.style.color = 'red';
+                });
+            }
+        }
+
+        // Start loading after DOM is ready
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
 </body>
 </html>
