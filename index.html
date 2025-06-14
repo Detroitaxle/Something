@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Warehouse ETA Tracker</title>
-    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="app-container">
@@ -13,11 +13,24 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2>Quick Links</h2>
-                <button id="add-link-btn" class="icon-btn">
-                    <i class="fas fa-plus"></i>
-                </button>
+                <div>
+                    <button id="toggle-edit-btn" class="icon-btn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button id="add-group-btn" class="icon-btn">
+                        <i class="fas fa-folder-plus"></i>
+                    </button>
+                </div>
             </div>
-            <ul id="link-tree" class="link-tree"></ul>
+            
+            <div id="link-tree" class="link-tree"></div>
+            
+            <div class="bulk-edit-controls">
+                <button id="delete-selected-links">Delete Selected</button>
+                <select id="group-selector">
+                    <option value="">Move to...</option>
+                </select>
+            </div>
             
             <div class="link-editor">
                 <input type="text" id="link-name" placeholder="Link name">
@@ -27,11 +40,19 @@
                     <button id="cancel-edit-btn">Cancel</button>
                 </div>
             </div>
+            
+            <div class="group-editor">
+                <input type="text" id="group-name" placeholder="Group name">
+                <div class="editor-buttons">
+                    <button id="save-group-btn">Save</button>
+                    <button id="cancel-group-btn">Cancel</button>
+                </div>
+            </div>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
-            <header>
+            <header class="texas-header">
                 <h1>Warehouse ETA Tracker</h1>
             </header>
             
@@ -52,14 +73,16 @@
             <div class="eta-search">
                 <div class="search-box">
                     <input type="text" id="state-search" placeholder="Search by state abbreviation (e.g., CA)">
-                    <button id="search-btn"><i class="fas fa-search"></i></button>
                 </div>
                 
                 <div class="eta-results">
                     <table id="eta-table">
                         <thead>
                             <tr>
-                                <th>State</th>
+                                <th>State Name</th>
+                                <th>Abbr</th>
+                                <th>ZIP Prefix</th>
+                                <th>Local Time</th>
                                 <th>ETA (Days)</th>
                             </tr>
                         </thead>
@@ -70,6 +93,7 @@
         </div>
     </div>
 
+    <script src="js/states-data.js"></script>
     <script src="js/eta-data.js"></script>
     <script src="js/main.js"></script>
 </body>
