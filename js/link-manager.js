@@ -7,7 +7,6 @@ class LinkManager {
     }
     
     init() {
-        this.renderLinkTree();
         this.setupEventListeners();
     }
     
@@ -22,37 +21,71 @@ class LinkManager {
     }
     
     createGroupElement(group) {
-        // Create group with collapsible functionality
-        // Include edit/delete icons when in edit mode
-        // Render all links in the group
+        const groupElement = document.createElement('div');
+        groupElement.className = 'link-group';
+        groupElement.innerHTML = `
+            <div class="link-group-header">
+                <span>${group.name}</span>
+                <div class="edit-controls ${this.editMode ? '' : 'hidden'}">
+                    <button class="edit-group">✏️</button>
+                    <button class="delete-group">🗑️</button>
+                </div>
+            </div>
+            <div class="link-group-content">
+                ${group.links.map(link => this.createLinkElement(link)).join('')}
+            </div>
+        `;
+        return groupElement;
     }
     
-    addLink(groupId, linkData) {
-        // Add new link to specified group
-        this.saveToLocalStorage();
-    }
-    
-    addGroup(groupName) {
-        // Add new group
-        this.saveToLocalStorage();
+    createLinkElement(link) {
+        return `
+            <div class="link-item" data-id="${link.id}">
+                <a href="${link.url}" target="_blank">${link.name}</a>
+                <div class="edit-controls ${this.editMode ? '' : 'hidden'}">
+                    <button class="edit-link">✏️</button>
+                    <button class="delete-link">🗑️</button>
+                </div>
+            </div>
+        `;
     }
     
     toggleEditMode() {
         this.editMode = !this.editMode;
-        // Show/hide edit controls
+        document.querySelectorAll('.edit-controls').forEach(control => {
+            control.classList.toggle('hidden', !this.editMode);
+        });
+        document.getElementById('edit-mode-toggle').textContent = 
+            this.editMode ? 'Normal Mode' : 'Edit Mode';
     }
     
-    toggleBulkEditMode() {
-        this.bulkEditMode = !this.bulkEditMode;
-        // Show/hide checkboxes and bulk controls
+    setupEventListeners() {
+        // Edit mode toggle
+        document.getElementById('edit-mode-toggle').addEventListener('click', () => {
+            this.toggleEditMode();
+        });
+        
+        // Add group button
+        document.getElementById('add-group-btn').addEventListener('click', () => {
+            const groupName = prompt("Enter group name:");
+            if (groupName) {
+                this.addGroup(groupName);
+            }
+        });
+    }
+    
+    addGroup(groupName) {
+        const newGroup = {
+            id: 'group' + Date.now(),
+            name: groupName,
+            links: []
+        };
+        this.linkGroups.push(newGroup);
+        this.saveToLocalStorage();
     }
     
     saveToLocalStorage() {
         localStorage.setItem('linkGroups', JSON.stringify(this.linkGroups));
         this.renderLinkTree();
-    }
-    
-    setupEventListeners() {
-        // Set up all button click handlers, etc.
     }
 }
