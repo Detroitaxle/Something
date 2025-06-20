@@ -1,5 +1,62 @@
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Something/sw.js');  // Match repo name
-  }
-</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund & Payment Calculator</title>
+    <meta name="theme-color" content="#FF5E14">
+    <link rel="manifest" href="app.webmanifest">
+    <link rel="icon" href="icon-192.png">
+    <style>
+        :root {
+            --primary: #FF5E14;
+            --secondary: #FF5E14;
+            --refund: #81c784;
+            --payment: #f48fb1;
+            --warning: #FF5E14;
+            --danger: #f44336;
+            --dark-bg: #121212;
+            --dark-surface: #1e1e1e;
+            --dark-text: #e0e0e0;
+            --dark-border: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        /* [Rest of your existing CSS styles...] */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- [Your existing calculator HTML...] -->
+    </div>
+
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        // Show install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installButton = document.createElement('button');
+            installButton.textContent = '📌 Install App';
+            installButton.className = 'install-btn';
+            installButton.onclick = () => deferredPrompt.prompt();
+            document.body.appendChild(installButton);
+        });
+
+        // [Your existing calculator JavaScript...]
+    </script>
+</body>
+</html>
