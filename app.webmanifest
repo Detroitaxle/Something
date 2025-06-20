@@ -1,0 +1,7 @@
+{
+  "name": "Refund Calculator",
+  "short_name": "RefundCalc",
+  "start_url": "/Something/",  // Match repo name
+  "display": "standalone",
+  "icons": [...]
+}
