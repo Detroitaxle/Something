@@ -6,7 +6,10 @@
     <title>Refund & Payment Calculator</title>
     <meta name="theme-color" content="#FF5E14">
     <link rel="manifest" href="app.webmanifest">
-    <link rel="icon" href="icon-192.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    
     <style>
         :root {
             --primary: #FF5E14;
@@ -30,33 +33,70 @@
             line-height: 1.6;
         }
 
-        /* [Rest of your existing CSS styles...] */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--dark-surface);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--dark-border);
+        }
+
+        /* [Rest of your CSS styles...] */
+        
+        .install-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- [Your existing calculator HTML...] -->
+        <h1>Refund & Payment Calculator</h1>
+        <!-- [Your calculator HTML content...] -->
     </div>
 
     <script>
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-
-        // Show install prompt
+        // Calculator logic here...
+        
+        // PWA Installation
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            const installButton = document.createElement('button');
-            installButton.textContent = '📌 Install App';
-            installButton.className = 'install-btn';
-            installButton.onclick = () => deferredPrompt.prompt();
-            document.body.appendChild(installButton);
+            const installBtn = document.createElement('button');
+            installBtn.className = 'install-btn';
+            installBtn.textContent = '📌 Install App';
+            installBtn.onclick = () => {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    document.body.removeChild(installBtn);
+                });
+            };
+            document.body.appendChild(installBtn);
         });
 
-        // [Your existing calculator JavaScript...]
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
