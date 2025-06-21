@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculator Launcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #FF5E14;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="openCalculator()">Open Calculator</button>
+
+    <script>
+        function openCalculator() {
+            const features = `
+                width=450,
+                height=600,
+                left=${(screen.width - 450) / 2},
+                top=${(screen.height - 600) / 2},
+                menubar=no,
+                toolbar=no,
+                location=no,
+                status=no,
+                resizable=yes
+            `;
+            window.open('popup.html', 'RefundCalculator', features);
+        }
+    </script>
+</body>
+</html>
