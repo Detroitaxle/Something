@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Refund Calculator</title>
+    <style>
+        :root {
+            --primary: #FF5E14;
+            --secondary: #FF5E14;
+            --refund: #81c784;
+            --payment: #f48fb1;
+            --dark-bg: #121212;
+            --dark-surface: #1e1e1e;
+            --dark-text: #e0e0e0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--dark-bg);
+            color: var(--dark-text);
+            margin: 0;
+            padding: 15px;
+            width: 400px;
+            height: 500px;
+            overflow: auto;
+        }
+        .container {
+            background: var(--dark-surface);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        /* Add your existing calculator styles here */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="color: var(--primary); margin-top: 0;">Refund Calculator</h2>
+        <!-- Your calculator HTML content -->
+    </div>
+
+    <script>
+        // Your existing calculator logic
+        function calculate() {
+            // Calculation functions here
+        }
+
+        // Auto-resize to content
+        window.addEventListener('load', () => {
+            document.body.style.height = 
+                Math.min(document.body.scrollHeight, 600) + 'px';
+        });
+    </script>
+</body>
+</html>
